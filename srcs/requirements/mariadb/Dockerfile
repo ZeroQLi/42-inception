@@ -1,20 +1,20 @@
-FROM debian:trixie
+FROM debian:bookworm
 
-RUN apt-get update
-RUN apt-get install -y mariadb-server \
-    mariadb-client \
-    galera-4 \
-    vim && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y \
+	mariadb-server \
+	mariadb-client \
+	curl \
+	&& rm -rf /var/lib/apt/lists/*
+
+COPY ./conf/mysqld.cnf /etc/mysql/mariadb.conf.d/50-server.cnf
+COPY ./tools/setup.sh /usr/local/bin/setup.sh
 
 RUN mkdir -p /var/run/mysqld /var/log/mysql \
-    && chown -R mysql:mysql /var/run/mysqld \
+    && chown -R mysql:mysql /var/run/mysqld /var/log/mysql \
     && chmod u=rwx,g=rx,o=rx /var/run/mysqld
 
-COPY ./conf/mysqld.conf /etc/mysql/mariadb.conf.d/mysqld.cnf
-COPY ./tools/mariadb.sh /usr/local/bin/
-
-RUN chmod +x /usr/local/bin/mariadb.sh
+RUN chmod +x /usr/local/bin/setup.sh
 
 EXPOSE 3306
 
-ENTRYPOINT [ "/usr/local/bin/mariadb.sh" ]
+ENTRYPOINT ["bash", "/usr/local/bin/setup.sh"]

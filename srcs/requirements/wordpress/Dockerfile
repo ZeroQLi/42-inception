@@ -1,29 +1,20 @@
-FROM debian:trixie
+FROM debian:bookworm
 
 RUN apt-get update && apt-get install -y \
-    php8.4-fpm \
-    php8.4-mysql \
-    php8.4-curl \
-    php8.4-gd \
-    php8.4-intl \
-    php8.4-mbstring \
-    php8.4-soap \
-    php8.4-xml \
-    php8.4-zip \
-    wget \
-    curl \
-    unzip && rm -rf /var/lib/apt/lists/*
+    php8.2-fpm \
+    php8.2-mysql \
+    unzip \
+    mariadb-client \
+    curl && rm -rf /var/lib/apt/lists/*
 
-# Create WordPress directory
 WORKDIR /var/www/html
 
-# Copy PHP-FPM configuration (correct version)
-COPY conf/www.conf /etc/php/8.4/fpm/pool.d/
+COPY conf/www.conf /etc/php/8.2/fpm/pool.d/www.conf
+COPY tools/setupwp.sh /usr/local/bin/
 
-# Copy and set permissions for setup script
-COPY conf/setupwp.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/setupwp.sh
+RUN curl -fsSL https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar -o /usr/local/bin/wp \
+	&& chmod +x /usr/local/bin/wp /usr/local/bin/setupwp.sh
 
 EXPOSE 9000
 
-ENTRYPOINT ["/usr/local/bin/setupwp.sh"]
+ENTRYPOINT ["bash", "/usr/local/bin/setupwp.sh"]
